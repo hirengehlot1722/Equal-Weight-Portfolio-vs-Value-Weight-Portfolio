@@ -1,0 +1,279 @@
+library(tidyquant)
+library(plotly)
+library(tidyverse)
+library(yfR)
+library(fs)
+library(lubridate)
+library(dplyr)
+library(zoo)
+library(tidyr)
+library(scales)
+library(PerformanceAnalytics)
+library(tictoc)
+library(fPortfolio)
+library(timeSeries)
+library(PortfolioAnalytics)
+library(portfolio)
+library(portfolio.optimization)
+library(ggplot2)
+library(corpcor)
+library(tseries)
+library(quadprog)
+library(SharpeR)
+library(devtools)
+library(ROI)
+
+
+
+tick <- c('AAPL', 'FB', 'RXT', 'ORCL',	'GOOGL',	'VMW',	'ANET',	'AMZN',	'MSFT',	'BABA',	'LUMN',	'AKAM',	'CSCO',	'KC',	'MDB',	'CTXS',	'NTAP',	'IBM',	'ADBE',	'HPE',	'CRM',	'HUBS',	'FIVN',	'TEAM',	'NOW',	'TWLO',	'SHOP',	'SPLK',	'MSTR',	'FSLY',	'PSTG',	'SAP',	'DOMO',	'APPN',	'TRHC',	'BOX',	'NET',	'DBX',	'OTEX',	'INTU',	'QLYS',	'PAYC',	'PCTY',	'VEEV',	'WDAY',	'ZEN',	'PANW',	'DOCU',	'SPT',	'CRWD',	'ASAN',	'BL',	'WK',	'PLAN',	'ZS',	'AVLR',	'DDOG',	'ESTC',	'SNOW',	'APPF',	'EVBG',	'SMAR',	'ZM',	'QTWO',	'COUP', 'NFLX', 'NVDA', 'TCEHY', 'DOCN')
+
+price_data <- tq_get(tick,
+                     from = '2011-07-07',
+                     to = '2022-03-31',
+                     get = 'stock.prices')
+                     
+
+SP <- price_data[,c(1,2,8)]
+
+SPpivot <- SP %>%
+  pivot_wider(names_from = symbol, values_from = adjusted)
+  
+stocksxts <- xts(SPpivot[,-1], order.by = SPpivot$date)
+
+weights <- c(0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275, 0.01449275)
+ 
+sum(weights)
+
+length(weights)
+
+stockreturns <- Return.calculate(stocksxts)
+
+portreturns <- Return.portfolio(stockreturns, weights = weights, rebalance_on = "quarters" )
+
+portwealth <- Return.portfolio(stockreturns, weights = weights, rebalance_on = "quarters", wealth.index = T)
+
+plot(portwealth, col = 'black')
+
+
+
+
+
+
+# CSV file export
+
+write.csv(portreturns, "mera.csv")
+
+# TRIAL
+
+ticker <- c('AAPL', 'FB', 'RXT', 'ORCL',	'GOOGL',	'VMW',	'ANET',	'AMZN',	'MSFT',	'BABA',	'LUMN',	'AKAM',	'CSCO',	'KC',	'MDB',	'CTXS',	'NTAP',	'IBM',	'ADBE',	'HPE',	'CRM',	'HUBS',	'FIVN',	'TEAM',	'NOW',	'TWLO',	'SHOP',	'SPLK',	'MSTR',	'FSLY',	'PSTG',	'SAP',	'DOMO',	'APPN',	'TRHC',	'BOX',	'NET',	'DBX',	'OTEX',	'INTU',	'QLYS',	'PAYC',	'MIME',	'PCTY',	'VEEV',	'WDAY',	'ZEN',	'PANW',	'DOCU',	'SPT',	'CRWD',	'ASAN',	'BL',	'WK',	'PLAN',	'ZS',	'AVLR',	'DDOG',	'ESTC',	'SNOW',	'APPF',	'EVBG',	'SMAR',	'ZM',	'QTWO',	'COUP', 'NFLX', 'NVDA', 'TCEHY', 'DOCN')
+
+price_data99 <- tq_get(ticker,
+                     from = '2015-07-07',
+                     to = '2022-03-31',
+                     get = 'stock.prices')
+
+
+SiP <- price_data99[,c(1,2,8)]
+
+SiPpivot <- SiP %>%
+  pivot_wider(names_from = symbol, values_from = adjusted)
+
+stsxts <- xts(SiPpivot[,-1], order.by = SiPpivot$date)
+
+
+
+stockret <- Return.calculate(stsxts)
+
+portret <- Return.portfolio(stockret)
+
+port <- Return.portfolio(stockret, wealth.index = T)
+
+lines(port, col = "red")
+
+
+# END TRIAL
+
+
+
+
+
+
+# Benchmark index
+
+VGT
+RYT
+^GSPC
+^SP500-45
+SKYY
+
+
+
+my_ticker <- 'VGT'
+first_date <- '2011-07-07'
+last_date <- '2022-03-31'
+
+df_yf <- yf_get(tickers = my_ticker, 
+                first_date = first_date,
+                last_date = last_date)
+            
+            
+
+
+l_wide <- yf_convert_to_wide(df_yf)
+
+BM <- l_wide$price_adjusted
+
+adj <- df_yf[,c(1,2,8)]   
+
+BMxts <- xts(BM[,-1], order.by = BM$ref_date)
+
+
+BMreturns <- Return.calculate(BMxts)
+
+BMport <- Return.portfolio(BMreturns)
+
+BMwealthindex <- Return.portfolio(BMreturns, wealth.index = T)
+
+lines(BMwealthindex, col = "green")
+
+
+
+
+
+
+
+# PORTFOLIO OPTIMIZATION
+
+#R path directory
+rstudioapi::getSourceEditorContext()$path
+
+
+
+
+
+#Create stats table
+
+calc_stats_table <- function (returns, returns_bm, riskfree) {
+ stats_table <- Return.cumulative(returns)
+ stats_table <- rbind(stats_table, Return.annualized(returns, scale = 252))
+ stats_table <- rbind(stats_table, StdDev.annualized(returns, scale = 252))
+ stats_table <- rbind(stats_table, maxDrawdown(returns))
+ stats_table <- rbind(stats_table, CAPM.beta(returns, returns_bm, Rf=riskfree))
+
+ rownames (stats_table) <- c("Total_Return", "Return_pa", "Vola_pa",
+ "SharpeRatio_pa", "MaxDD", "Beta")
+
+ stats_table <- t(stats_table)
+
+ return(stats_table)
+}
+
+
+#stats table
+statstable <- calc_stats_table(portreturns, BMreturns, riskfree = 0)
+BMtable <- calc_stats_table(BMreturns, BMreturns, riskfree = 0)
+
+finalstats <- rbind(statstable, BMtable)
+
+length(BMreturns)
+
+head(portreturns)
+
+head(BMreturns)
+
+
+
+
+
+
+# Drop NA
+
+BMxts[is.na(BMxts)] <- 0
+
+portwealth[is.na(portwealth)] <- 0
+
+
+# MATRIX
+
+matplot(stockreturns)
+
+scatterplot(BMreturns)
+
+
+as.matrix.cast_df(portreturns)
+as.matrix(portreturns)
+ncol(y <- as.matrix(portreturns))
+matplot(stockreturns[1:2, ])
+
+
+as.matrix.cast_df(BMreturns)
+as.matrix(BMreturns)
+ncol(y <- as.matrix(BMreturns))
+matplot(portreturns[1:2, ])
+
+
+
+
+# Regressions
+
+data.frame <- data.frame(portreturns + BMreturns)
+
+data.regression <- lm(portreturns ~ BMreturns, data=data.frame)
+
+class(BMreturns)
+
+# 2nd method
+
+mod <- lm(portreturns ~ portret)
+
+summary(mod)
+
+jensen <- CAPM.jensenAlpha(portreturns, BMreturns, .035/252)
+
+SharpeRatio(portreturns, .035/252)
+
+table.AnnualizedReturns(portreturns)
+
+beta <- CAPM.beta(portreturns, BMreturns)
+alpha <- CAPM.alpha(portreturns, BMreturns)
+
+beta
+alpha
+jensen
+
+
+# EFFCIENT FRONTIER
+
+
+# 1st method
+port_ret <- as.timeSeries(stockreturns)
+
+effFrontier <- portfolioFrontier(port_ret[,-1], constraints = "LongOnly")
+
+effFrontier
+
+plot(effFrontier)
+
+# 2nd method
+
+portfolio.return = stockreturns
+
+portfolio.return = as.timeSeries(portfolio.return)
+
+eff = portfolioFrontier(portfolio.return, 'setRiskFreeRate<-'(portfolioSpec(), 0.00221/12), constraints = "LongOnly")
+
+eff
+
+plot(eff)
+
+
+
+
+
+
+
+
+
+
+
+
